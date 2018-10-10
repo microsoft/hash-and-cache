@@ -1,0 +1,18 @@
+{
+  "name": "hash-and-cache",
+  "version": "1.0.0",
+  "description": "Allows you to wrap caching behavior around an arbitrary command.  It will take in a list of source files, generate a hash, then check a cache (stored in Azure Storage) to see if those inputs have been seen before.  If so it will download the cached outputs instead of running the command.  If no cache is found matching the hash it will run the command instead.",
+  "main": "hash-and-cache.js",
+  "author": "dylan-smith",
+  "license": "ISC",
+  "repository": {
+    "type" : "git",
+    "url" : "https://dylansmith.visualstudio.com/DefaultCollection/HashAndCache/_git/HashAndCache"
+  },
+  "dependencies": {
+    "azure-storage": "^2.10.1",
+    "glob": "^7.1.3",
+    "mkdirp": "^0.5.1",
+    "tar": "^4.4.6"
+  }
+}

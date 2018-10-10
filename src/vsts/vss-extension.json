@@ -1,0 +1,32 @@
+{
+    "manifestVersion": 1,
+    "id": "hash-and-cache",
+    "publisher": "dylansmith",
+    "version": "1.0.13",
+    "name": "Hash And Cache",
+    "description": "Allows you to wrap caching behavior around an arbitrary command by hashing the input files and caching the outputs.",
+    "public": false,
+    "categories": ["Build and release"],
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "files": [
+        {
+            "path": "buildAndReleaseTask"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "custom-build-release-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "buildAndReleaseTask"
+            }
+        }
+    ]
+}
