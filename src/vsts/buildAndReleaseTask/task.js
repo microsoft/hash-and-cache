@@ -92,6 +92,8 @@ var hashAndCache = function (options) {
             file: tarPath,
             strict: true,
             gzip: true,
+            portable: true,
+            noMtime: true,
             cwd: options.outputPath
           }
     
@@ -269,6 +271,7 @@ var extractCache = function (targetPath, hash) {
     sync: true,
     file: tarPath,
     strict: true,
+    noMtime: true,
     cwd: targetPath
   }
 
