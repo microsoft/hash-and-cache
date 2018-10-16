@@ -123,12 +123,11 @@ function createCache(hash, outputPath, outputFiles, outputIgnore) {
     console.log("No output files found - skipping cache creation.");
     return;
   }
-
-  let tarFile = tarFileName(hash);
-  let tarPath = path.join(outputPath, tarFile);
-
+  
   // the tar library doesn't like paths that start with @ - need to add ./ to the start
   files = files.map(function(value) { return value.startsWith('@') ? './' + value : value });
+
+  let tarPath = path.join(outputPath, tarFileName(hash));
 
   console.log("Creating tarball " + tarPath);
 
@@ -139,7 +138,7 @@ function createCache(hash, outputPath, outputFiles, outputIgnore) {
     gzip: true,
     portable: true,
     noMtime: true,
-    cwd: options.outputPath
+    cwd: outputPath
   }
 
   tar.create(tarOptions, files);
@@ -279,7 +278,7 @@ function generateHash(sourcePath, sourceFiles, sourceIgnore, hashSuffix, execCom
   return hash;
 }
 
-var hashAndCache = function () {
+function hashAndCache() {
 
   let options = resolveOptions();
 
