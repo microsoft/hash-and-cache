@@ -82,7 +82,7 @@ function getGlobalBlobService(storageAccount, storageContainer, storageKey) {
     blobService = azureStorage.createBlobService(storageAccount, storageKey);
     return blobService;
   } else {
-    throw "Storage Account details missing - cannot create blob service.";
+    throw new Error("Storage Account details missing - cannot create blob service.");
   }
 }
 
