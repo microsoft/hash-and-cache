@@ -5,7 +5,7 @@
     "version": "1.0.13",
     "name": "Hash And Cache",
     "description": "Allows you to wrap caching behavior around an arbitrary command by hashing the input files and caching the outputs.",
-    "public": false,
+    "public": true,
     "categories": ["Build and release"],
     "targets": [
         {
