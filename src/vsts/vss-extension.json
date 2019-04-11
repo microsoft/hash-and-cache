@@ -12,6 +12,9 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
+    "content": {
+        "details": { "path": "overview.md" }
+    },
     "files": [
         {
             "path": "buildAndReleaseTask"
