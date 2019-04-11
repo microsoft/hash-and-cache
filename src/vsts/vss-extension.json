@@ -12,6 +12,16 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
+    "links": {
+        "support": { "uri": "https://github.com/microsoft/hash-and-cache/issues" }
+    },
+    "icons": {
+        "default": "hashtag-512.png"
+    },
+    "repository": {
+        "type": "git",
+        "uri": "https://github.com/microsoft/hash-and-cache"
+    },
     "content": {
         "details": { "path": "overview.md" }
     },
