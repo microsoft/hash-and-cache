@@ -1,14 +1,6 @@
 
-# Contributing
+# Hash and Cache
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+This Azure DevOps extension (and/or NPM package) allows you to wrap caching behavior around a command-line command.  Most common scenario is for npm install.  This task will hash the contents of your package.lock file, and if it is unchanged from previous runs download a cached copy of the node_modules folder from an Azure Storage account - and skip running npm install.
 
-When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+If package.lock is changed, it will not find a valid cache and will run npm install as normal (and optionally create a new cache entry and upload to Azure Storage).
