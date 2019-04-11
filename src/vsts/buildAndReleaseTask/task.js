@@ -1,3 +1,11 @@
+// safety first - handle and exit non-zero if we run into issues
+let abortProcess = e => {
+  console.log(e);
+  process.exit(1);
+};
+process.on("uncaughtException", abortProcess);
+process.on("unhandledRejection", abortProcess);
+
 const tl = require('vsts-task-lib/task');
 var crypto = require('crypto');
 var azureStorage = require('azure-storage');
