@@ -66,8 +66,12 @@ var hashAndCache = function (options) {
         console.log("CACHE MISS!");
 
         if (options.execCommand) {
-          console.log("Running Command " + options.execCommand);
-          execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
+          try {
+            console.log("Running Command " + options.execCommand);
+            execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
+          } catch (err) {
+            tl.setResult(tl.TaskResult.Failed, err.message);
+          }
         } else {
           console.log("No command specified - skipping");
         }
@@ -286,6 +290,5 @@ var deleteCache = function (targetPath, hash) {
 
   fs.unlinkSync(cachePath);
 }
-
 
 hashAndCache(options);
