@@ -1,3 +1,11 @@
+// safety first - handle and exit non-zero if we run into issues
+let abortProcess = e => {
+  console.log(e);
+  process.exit(1);
+};
+process.on("uncaughtException", abortProcess);
+process.on("unhandledRejection", abortProcess);
+
 const tl = require('vsts-task-lib/task');
 var crypto = require('crypto');
 var azureStorage = require('azure-storage');
@@ -66,12 +74,8 @@ var hashAndCache = function (options) {
         console.log("CACHE MISS!");
 
         if (options.execCommand) {
-          try {
-            console.log("Running Command " + options.execCommand);
-            execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
-          } catch (err) {
-            tl.setResult(tl.TaskResult.Failed, err.message);
-          }
+          console.log("Running Command " + options.execCommand);
+          execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
         } else {
           console.log("No command specified - skipping");
         }
