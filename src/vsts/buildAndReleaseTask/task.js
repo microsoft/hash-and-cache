@@ -295,4 +295,5 @@ var deleteCache = function (targetPath, hash) {
   fs.unlinkSync(cachePath);
 }
 
+
 hashAndCache(options);
