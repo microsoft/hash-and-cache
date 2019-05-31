@@ -98,8 +98,13 @@ var hashAndCache = function (options) {
           }
     
           tar.create(tarOptions, files);
-          uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey).then(function() {
+          uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey)
+          .then(function() {
             fs.unlinkSync(tarPath);
+          })
+          .catch(function(err) {
+            console.warn("Uploading of cache failed. This may happen when attempting to upload in parallel.")
+            console.warn(err);
           });
         }
       }
