@@ -65,6 +65,7 @@ module.exports = async function (options) {
         file: tarPath,
         strict: true,
         gzip: true,
+        noDirRecurse: true,
         cwd: options.outputPath
       }
 
@@ -96,7 +97,9 @@ var generateHash = function (sourcePath, sourceFiles, sourceIgnore, hashSuffix, 
   });
 
   hashAlgorithm.update(hashSuffix);
-  hashAlgorithm.update(execCommand);
+  if (execCommand) {
+    hashAlgorithm.update(execCommand);
+  }
 
   var hash = hashAlgorithm.digest('hex');
 
@@ -116,7 +119,7 @@ var getFileList = function (workingDirectory, globs, ignoreGlob) {
   var globOptions = {
     cwd: workingDirectory,
     dot: true,
-    nodir: true,
+    nodir: false,
     ignore: ignoreGlob
   }
 
@@ -240,6 +243,7 @@ var extractCache = function (targetPath, hash) {
     sync: true,
     file: tarPath,
     strict: true,
+    preservePaths: true,
     cwd: targetPath
   }
 
