@@ -21,20 +21,20 @@ var outputFiles = tl.getInput('outputFiles') || '';
 var outputIgnore = tl.getInput('outputIgnore') || '';
 
 var options = {
-    sourcePath: tl.getPathInput('sourcePath', true, true),
-    sourceFiles: tl.getInput('sourceFiles', true).split(/\r?\n/),
-    sourceIgnore: sourceIgnore.split(/\r?\n/),
-    hashSuffix: tl.getInput('hashSuffix'),
-    execWorkingDirectory: tl.getPathInput('execWorkingDirectory'),
-    execCommand: tl.getInput('execCommand'),
-    storageAccount: tl.getInput('storageAccount'),
-    storageContainer: tl.getInput('storageContainer'),
-    storageKey: tl.getInput('storageKey'),
-    outputPath: tl.getInput('outputPath'),
-    outputFiles: outputFiles.split(/\r?\n/),
-    outputIgnore: outputIgnore.split(/\r?\n/),
-    uploadCacheOnMiss: tl.getBoolInput('uploadCacheOnMiss'),
-    downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit')
+  sourcePath: tl.getPathInput('sourcePath', true, true),
+  sourceFiles: tl.getInput('sourceFiles', true).split(/\r?\n/),
+  sourceIgnore: sourceIgnore.split(/\r?\n/),
+  hashSuffix: tl.getInput('hashSuffix'),
+  execWorkingDirectory: tl.getPathInput('execWorkingDirectory'),
+  execCommand: tl.getInput('execCommand'),
+  storageAccount: tl.getInput('storageAccount'),
+  storageContainer: tl.getInput('storageContainer'),
+  storageKey: tl.getInput('storageKey'),
+  outputPath: tl.getInput('outputPath'),
+  outputFiles: outputFiles.split(/\r?\n/),
+  outputIgnore: outputIgnore.split(/\r?\n/),
+  uploadCacheOnMiss: tl.getBoolInput('uploadCacheOnMiss'),
+  downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit')
 }
 
 // calling this function prints all the variables if System.Debug == true
@@ -60,63 +60,66 @@ var hashAndCache = function (options) {
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
-  doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey).then(function(result) {
-      if (result) {
-        console.log("CACHE HIT!");
+  doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey).then(function (result) {
+    if (result) {
+      console.log("CACHE HIT!");
 
-        if (options.downloadCacheOnHit) {
-          downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function() {
-            extractCache(options.outputPath, hash);
-            deleteCache(options.outputPath, hash);
-          });
-        }
-      } else {
-        console.log("CACHE MISS!");
-
-        if (options.execCommand) {
-          console.log("Running Command " + options.execCommand);
-          execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
-        } else {
-          console.log("No command specified - skipping");
-        }
-    
-        if (options.uploadCacheOnMiss) {
-          var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
-    
-          if (!files || files.length == 0) {
-            console.log("No output files found - skipping cache update");
-            return;
-          }
-    
-          var tarFile = hash + ".tgz";
-          var tarPath = path.join(options.outputPath, tarFile);
-          // the tar library doesn't like paths that start with @ - need to add ./ to the start
-          files = files.map(function(value) { return value.startsWith('@') ? './' + value : value });
-    
-          console.log("Creating tarball " + tarPath);
-    
-          var tarOptions = {
-            sync: true,
-            file: tarPath,
-            strict: true,
-            gzip: true,
-            portable: true,
-            noMtime: true,
-            cwd: options.outputPath
-          }
-    
-          tar.create(tarOptions, files);
-          uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey)
-          .then(function() {
-            fs.unlinkSync(tarPath);
-          })
-          .catch(function(err) {
-            console.warn("Uploading of cache failed. This may happen when attempting to upload in parallel.")
-            console.warn(err);
-          });
-        }
+      if (options.downloadCacheOnHit) {
+        downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
+          extractCache(options.outputPath, hash);
+          deleteCache(options.outputPath, hash);
+        }).catch(function () { onCacheMiss(e) });
       }
+    } else {
+      console.log("CACHE MISS!");
+      return onCacheMiss(options);
+    }
   });
+}
+
+var onCacheMiss = function (options) {
+  if (options.execCommand) {
+    console.log("Running Command " + options.execCommand);
+    execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
+  } else {
+    console.log("No command specified - skipping");
+  }
+
+  if (options.uploadCacheOnMiss) {
+    var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
+
+    if (!files || files.length == 0) {
+      console.log("No output files found - skipping cache update");
+      return;
+    }
+
+    var tarFile = hash + ".tgz";
+    var tarPath = path.join(options.outputPath, tarFile);
+    // the tar library doesn't like paths that start with @ - need to add ./ to the start
+    files = files.map(function (value) { return value.startsWith('@') ? './' + value : value });
+
+    console.log("Creating tarball " + tarPath);
+
+    var tarOptions = {
+      sync: true,
+      file: tarPath,
+      strict: true,
+      gzip: true,
+      portable: true,
+      noMtime: true,
+      cwd: options.outputPath
+    }
+
+    tar.create(tarOptions, files);
+    uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey)
+      .then(function () {
+        fs.unlinkSync(tarPath);
+      })
+      .catch(function (err) {
+        console.warn("Uploading of cache failed. This may happen when attempting to upload in parallel.")
+        console.warn(err);
+      });
+  }
 }
 
 var generateHash = function (sourcePath, sourceFiles, sourceIgnore, hashSuffix, execCommand) {
@@ -168,7 +171,7 @@ var getFileList = function (workingDirectory, globs, ignoreGlob) {
     files = files.concat(glob.sync(g, globOptions));
   }
 
-  var filesUnique =  files.sort().filter(function(item, pos, ary) {
+  var filesUnique = files.sort().filter(function (item, pos, ary) {
     return !pos || item != ary[pos - 1];
   });
 
@@ -209,7 +212,7 @@ var downloadCache = function (hash, storageAccount, storageContainer, storageKey
   console.log("storageAccount: " + storageAccount);
   console.log("storageContainer: " + storageContainer);
   console.log("targetPath: " + targetPath);
-  
+
   if (storageAccount && storageContainer && storageKey) {
     var blobName = hash + ".tgz";
     var downloadFile = path.join(targetPath, blobName);
@@ -247,7 +250,7 @@ var uploadCache = function (blobPath, blobName, storageAccount, storageContainer
   console.log("blobName: " + blobName);
   console.log("storageAccount: " + storageAccount);
   console.log("storageContainer: " + storageContainer);
-  
+
   if (storageAccount && storageContainer && storageKey) {
     var blobService = azureStorage.createBlobService(storageAccount, storageKey);
 
