@@ -31,47 +31,52 @@ module.exports = async function (options) {
     console.log("CACHE HIT!");
 
     if (options.downloadCacheOnHit) {
-      await downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath);
-      extractCache(options.outputPath, hash);
-      deleteCache(options.outputPath, hash);
-    }
-  } else {
-    console.log("CACHE MISS!");
-
-    if (options.execCommand) {
-      console.log("Running Command " + options.execCommand);
-      execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
-    } else {
-      console.log("No command specified - skipping");
-    }
-
-    if (options.uploadCacheOnMiss) {
-      var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
-
-      if (!files || files.length == 0) {
-        console.log("No output files found - skipping cache update");
+      try {
+        await downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath);
+        extractCache(options.outputPath, hash);
+        deleteCache(options.outputPath, hash);
         return;
+      } catch (e) {
+        console.log("error - falling back to cache miss:", e)
       }
-
-      var tarFile = hash + ".tgz";
-      var tarPath = path.join(options.outputPath, tarFile);
-      // the tar library doesn't like paths that start with @ - need to add ./ to the start
-      files = files.map(function(value) { return value.startsWith('@') ? './' + value : value });
-
-      console.log("Creating tarball " + tarPath);
-
-      var tarOptions = {
-        sync: true,
-        file: tarPath,
-        strict: true,
-        gzip: true,
-        cwd: options.outputPath
-      }
-
-      tar.create(tarOptions, files);
-      await uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey);
-      fs.unlinkSync(tarPath);
     }
+  }
+
+  console.log("CACHE MISS!");
+
+  if (options.execCommand) {
+    console.log("Running Command " + options.execCommand);
+    execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
+  } else {
+    console.log("No command specified - skipping");
+  }
+
+  if (options.uploadCacheOnMiss) {
+    var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
+
+    if (!files || files.length == 0) {
+      console.log("No output files found - skipping cache update");
+      return;
+    }
+
+    var tarFile = hash + ".tgz";
+    var tarPath = path.join(options.outputPath, tarFile);
+    // the tar library doesn't like paths that start with @ - need to add ./ to the start
+    files = files.map(function(value) { return value.startsWith('@') ? './' + value : value });
+
+    console.log("Creating tarball " + tarPath);
+
+    var tarOptions = {
+      sync: true,
+      file: tarPath,
+      strict: true,
+      gzip: true,
+      cwd: options.outputPath
+    }
+
+    tar.create(tarOptions, files);
+    await uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey);
+    fs.unlinkSync(tarPath);
   }
 }
 
@@ -165,7 +170,7 @@ var downloadCache = function (hash, storageAccount, storageContainer, storageKey
   console.log("storageAccount: " + storageAccount);
   console.log("storageContainer: " + storageContainer);
   console.log("targetPath: " + targetPath);
-  
+
   if (storageAccount && storageContainer && storageKey) {
     var blobName = hash + ".tgz";
     var downloadFile = path.join(targetPath, blobName);
@@ -203,7 +208,7 @@ var uploadCache = function (blobPath, blobName, storageAccount, storageContainer
   console.log("blobName: " + blobName);
   console.log("storageAccount: " + storageAccount);
   console.log("storageContainer: " + storageContainer);
-  
+
   if (storageAccount && storageContainer && storageKey) {
     var blobService = azureStorage.createBlobService(storageAccount, storageKey);
 
@@ -243,7 +248,7 @@ var extractCache = function (targetPath, hash) {
     cwd: targetPath
   }
 
-  tar.extract(tarOptions);
+  return tar.extract(tarOptions);
 }
 
 var deleteCache = function (targetPath, hash) {
@@ -252,5 +257,5 @@ var deleteCache = function (targetPath, hash) {
 
   console.log("Deleting Cache File " + cachePath);
 
-  fs.unlinkSync(cachePath);
+  return fs.unlinkSync(cachePath);
 }
