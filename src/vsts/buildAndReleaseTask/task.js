@@ -167,6 +167,8 @@ var getFileList = function (workingDirectory, globs, ignoreGlob) {
     ignore: ignoreGlob
   }
 
+  console.log(globs, globOptions)
+
   for (let g of globs) {
     files = files.concat(glob.sync(g, globOptions));
   }
