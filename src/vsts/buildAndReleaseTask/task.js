@@ -62,13 +62,13 @@ var hashAndCache = function (options) {
 
   doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey).then(function (result) {
     if (result) {
-      console.log("CACHE HIT!");
+      console.log(result, "CACHE HIT!");
 
       if (options.downloadCacheOnHit) {
         downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
           extractCache(options.outputPath, hash);
           deleteCache(options.outputPath, hash);
-        }).catch(function () { onCacheMiss(e) });
+        }).catch(function () { onCacheMiss(options) });
       }
     } else {
       console.log("CACHE MISS!");
@@ -192,9 +192,10 @@ var doesCacheExist = function (hash, storageAccount, storageContainer, storageKe
     var blobPromise = new Promise((resolve, reject) => {
       blobService.doesBlobExist(storageContainer, blobName, (err, result) => {
         if (err) {
+          console.log("looks like blob does not exist", err);
           resolve(false);
         } else {
-          resolve(result.exists)
+          resolve(result.exists);
         }
       });
     });
