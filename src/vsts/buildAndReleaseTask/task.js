@@ -20,7 +20,7 @@ var sourceIgnore = tl.getInput('sourceIgnore') || '';
 var outputFiles = tl.getInput('outputFiles') || '';
 var outputIgnore = tl.getInput('outputIgnore') || '';
 
-var options = {
+var userOptions = {
   sourcePath: tl.getPathInput('sourcePath', true, true),
   sourceFiles: tl.getInput('sourceFiles', true).split(/\r?\n/),
   sourceIgnore: sourceIgnore.split(/\r?\n/),
@@ -41,22 +41,22 @@ var options = {
 tl.getVariables();
 
 var hashAndCache = function (options) {
-  options.sourcePath = options.sourcePath || process.cwd();
-  options.sourceFiles = options.sourceFiles || ["**"];
-  if (typeof options.sourceFiles === 'string') options.sourceFiles = [options.sourceFiles];
-  options.sourceIgnore = options.sourceIgnore || "";
-  options.hashSuffix = options.hashSuffix || "";
-  options.execWorkingDirectory = options.execWorkingDirectory || process.cwd();
-  options.execCommand = options.execCommand || null;
-  options.storageAccount = options.storageAccount || null;
-  options.storageContainer = options.storageContainer || null;
-  options.storageKey = options.storageKey || null;
-  options.outputPath = options.outputPath || process.cwd();
-  options.outputFiles = options.outputFiles || ["**"];
-  options.outputIgnore = options.outputIgnore || "";
-  if (typeof options.outputFiles === 'string') options.outputFiles = [options.outputFiles];
-  options.downloadCacheOnHit = options.downloadCacheOnHit === false ? false : true;
-  options.uploadCacheOnMiss = options.uploadCacheOnMiss === true;
+  options.sourcePath = userOptions.sourcePath || process.cwd();
+  options.sourceFiles = userOptions.sourceFiles || ["**"];
+  options.sourceFiles = typeof userOptions.sourceFiles === 'string' ? [userOptions.sourceFiles] : userOptions.sourceFiles;
+  options.sourceIgnore = userOptions.sourceIgnore || "";
+  options.hashSuffix = userOptions.hashSuffix || "";
+  options.execWorkingDirectory = userOptions.execWorkingDirectory || process.cwd();
+  options.execCommand = userOptions.execCommand || null;
+  options.storageAccount = userOptions.storageAccount || null;
+  options.storageContainer = userOptions.storageContainer || null;
+  options.storageKey = userOptions.storageKey || null;
+  options.outputPath = userOptions.outputPath || process.cwd();
+  options.outputFiles = userOptions.outputFiles || ["**"];
+  options.outputIgnore = userOptions.outputIgnore || "";
+  options.outputFiles = typeof userOptions.outputFiles === 'string' ? [userOptions.outputFiles] : userOptions.outputFiles;
+  options.downloadCacheOnHit = userOptions.downloadCacheOnHit === false ? false : true;
+  options.uploadCacheOnMiss = userOptions.uploadCacheOnMiss === true;
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
@@ -305,4 +305,4 @@ var deleteCache = function (targetPath, hash) {
 }
 
 
-hashAndCache(options);
+hashAndCache(userOptions);
