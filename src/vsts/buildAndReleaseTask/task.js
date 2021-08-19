@@ -68,16 +68,16 @@ var hashAndCache = function (options) {
         downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
           extractCache(options.outputPath, hash);
           deleteCache(options.outputPath, hash);
-        }).catch(function () { onCacheMiss(options) });
+        }).catch(function () { onCacheMiss(hash, options) });
       }
     } else {
       console.log("CACHE MISS!");
-      return onCacheMiss(options);
+      return onCacheMiss(hash, options);
     }
   });
 }
 
-var onCacheMiss = function (options) {
+var onCacheMiss = function (hash, options) {
   if (options.execCommand) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
