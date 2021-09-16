@@ -68,7 +68,7 @@ var hashAndCache = function (options) {
         downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
           extractCache(options.outputPath, hash);
           deleteCache(options.outputPath, hash);
-        }).catch(function () { onCacheMiss(hash, options) });
+        }).catch(function () { return runExecCommand(options) });
       }
     } else {
       console.log("CACHE MISS!");
@@ -77,13 +77,17 @@ var hashAndCache = function (options) {
   });
 }
 
-var onCacheMiss = function (hash, options) {
+var runExecCommand = function (options) {
   if (options.execCommand) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
   } else {
     console.log("No command specified - skipping");
   }
+}
+
+var onCacheMiss = function (hash, options) {
+  runExecCommand(options);
 
   if (options.uploadCacheOnMiss) {
     var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
