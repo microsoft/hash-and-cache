@@ -34,7 +34,8 @@ var userOptions = {
   outputFiles: outputFiles.split(/\r?\n/),
   outputIgnore: outputIgnore.split(/\r?\n/),
   uploadCacheOnMiss: tl.getBoolInput('uploadCacheOnMiss'),
-  downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit')
+  downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit'),
+  skipExec: tl.getBoolInput('skipExec')
 }
 
 // calling this function prints all the variables if System.Debug == true
@@ -57,6 +58,7 @@ var hashAndCache = function (options) {
   options.outputFiles = typeof userOptions.outputFiles === 'string' ? [userOptions.outputFiles] : userOptions.outputFiles;
   options.downloadCacheOnHit = userOptions.downloadCacheOnHit === false ? false : true;
   options.uploadCacheOnMiss = userOptions.uploadCacheOnMiss === true;
+  options.skipExec = userOptions.skipExec === true? true : false;
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
@@ -80,11 +82,15 @@ var hashAndCache = function (options) {
 }
 
 var runExecCommand = function (options) {
-  if (options.execCommand) {
+  if (options.execCommand && !options.skipExec) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
   } else {
-    console.log("No command specified - skipping");
+    if (options.skipExec) {
+      console.log("Skipping exec command (options.skipExec = true)");
+    } else {
+      console.log("No command specified - skipping");
+    }
   }
 }
 

@@ -24,6 +24,7 @@ module.exports = async function (options) {
   if (typeof options.outputFiles === 'string') options.outputFiles = [options.outputFiles];
   options.downloadCacheOnHit = options.downloadCacheOnHit === false ? false : true;
   options.uploadCacheOnMiss = options.uploadCacheOnMiss === true;
+  options.skipExec = options.skipExec === true? true : false;
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
@@ -46,11 +47,15 @@ module.exports = async function (options) {
   console.log("CACHE MISS!");
   console.log("##vso[task.setvariable variable=cacheHit]false");
 
-  if (options.execCommand) {
+  if (options.execCommand && !options.skipExec) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
   } else {
-    console.log("No command specified - skipping");
+    if (options.skipExec) {
+      console.log("Skipping exec command (options.skipExec = true)");
+    } else {
+      console.log("No command specified - skipping");
+    }
   }
 
   if (options.uploadCacheOnMiss) {
