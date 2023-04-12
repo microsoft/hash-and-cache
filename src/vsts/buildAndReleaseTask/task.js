@@ -97,7 +97,7 @@ var runExecCommand = function (options) {
 var onCacheMiss = function (hash, options) {
   runExecCommand(options);
 
-  if (options.uploadCacheOnMiss) {
+  if (options.uploadCacheOnMiss && !options.skipExec) {
     var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
 
     if (!files || files.length == 0) {
@@ -131,6 +131,10 @@ var onCacheMiss = function (hash, options) {
         console.warn("Uploading of cache failed. This may happen when attempting to upload in parallel.")
         console.warn(err);
       });
+  } else {
+    if (options.skipExec) {
+      console.log("Skipping cache upload, no output to upload (options.skipExec = true)");
+    }
   }
 }
 

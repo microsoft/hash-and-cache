@@ -58,7 +58,7 @@ module.exports = async function (options) {
     }
   }
 
-  if (options.uploadCacheOnMiss) {
+  if (options.uploadCacheOnMiss && !options.skipExec) {
     var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
 
     if (!files || files.length == 0) {
@@ -84,6 +84,10 @@ module.exports = async function (options) {
     tar.create(tarOptions, files);
     await uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey);
     fs.unlinkSync(tarPath);
+  } else {
+    if (options.skipExec) {
+      console.log("Skipping cache upload, no output to upload (options.skipExec = true)");
+    }
   }
 }
 
