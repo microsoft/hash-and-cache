@@ -29,6 +29,7 @@ module.exports = async function (options) {
 
   if (await doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey)) {
     console.log("CACHE HIT!");
+    console.log("##vso[task.setvariable variable=cacheHit]true");
 
     if (options.downloadCacheOnHit) {
       try {
@@ -43,6 +44,7 @@ module.exports = async function (options) {
   }
 
   console.log("CACHE MISS!");
+  console.log("##vso[task.setvariable variable=cacheHit]false");
 
   if (options.execCommand) {
     console.log("Running Command " + options.execCommand);

@@ -63,6 +63,7 @@ var hashAndCache = function (options) {
   doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey).then(function (result) {
     if (result) {
       console.log(result, "CACHE HIT!");
+      console.log("##vso[task.setvariable variable=cacheHit]true");
 
       if (options.downloadCacheOnHit) {
         downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
@@ -72,6 +73,7 @@ var hashAndCache = function (options) {
       }
     } else {
       console.log("CACHE MISS!");
+      console.log("##vso[task.setvariable variable=cacheHit]false");
       return onCacheMiss(hash, options);
     }
   });
