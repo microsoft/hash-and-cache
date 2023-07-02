@@ -24,11 +24,13 @@ module.exports = async function (options) {
   if (typeof options.outputFiles === 'string') options.outputFiles = [options.outputFiles];
   options.downloadCacheOnHit = options.downloadCacheOnHit === false ? false : true;
   options.uploadCacheOnMiss = options.uploadCacheOnMiss === true;
+  options.skipExec = options.skipExec === true? true : false;
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
   if (await doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey)) {
     console.log("CACHE HIT!");
+    console.log("##vso[task.setvariable variable=cacheHit]true");
 
     if (options.downloadCacheOnHit) {
       try {
@@ -43,15 +45,20 @@ module.exports = async function (options) {
   }
 
   console.log("CACHE MISS!");
+  console.log("##vso[task.setvariable variable=cacheHit]false");
 
-  if (options.execCommand) {
+  if (options.execCommand && !options.skipExec) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
   } else {
-    console.log("No command specified - skipping");
+    if (options.skipExec) {
+      console.log("Skipping exec command (options.skipExec = true)");
+    } else {
+      console.log("No command specified - skipping");
+    }
   }
 
-  if (options.uploadCacheOnMiss) {
+  if (options.uploadCacheOnMiss && !options.skipExec) {
     var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
 
     if (!files || files.length == 0) {
@@ -77,6 +84,10 @@ module.exports = async function (options) {
     tar.create(tarOptions, files);
     await uploadCache(tarPath, tarFile, options.storageAccount, options.storageContainer, options.storageKey);
     fs.unlinkSync(tarPath);
+  } else {
+    if (options.skipExec) {
+      console.log("Skipping cache upload, no output to upload (options.skipExec = true)");
+    }
   }
 }
 

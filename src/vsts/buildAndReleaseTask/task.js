@@ -34,7 +34,8 @@ var userOptions = {
   outputFiles: outputFiles.split(/\r?\n/),
   outputIgnore: outputIgnore.split(/\r?\n/),
   uploadCacheOnMiss: tl.getBoolInput('uploadCacheOnMiss'),
-  downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit')
+  downloadCacheOnHit: tl.getBoolInput('downloadCacheOnHit'),
+  skipExec: tl.getBoolInput('skipExec')
 }
 
 // calling this function prints all the variables if System.Debug == true
@@ -57,12 +58,14 @@ var hashAndCache = function (options) {
   options.outputFiles = typeof userOptions.outputFiles === 'string' ? [userOptions.outputFiles] : userOptions.outputFiles;
   options.downloadCacheOnHit = userOptions.downloadCacheOnHit === false ? false : true;
   options.uploadCacheOnMiss = userOptions.uploadCacheOnMiss === true;
+  options.skipExec = userOptions.skipExec === true? true : false;
 
   var hash = generateHash(options.sourcePath, options.sourceFiles, options.sourceIgnore, options.hashSuffix, options.execCommand);
 
   doesCacheExist(hash, options.storageAccount, options.storageContainer, options.storageKey).then(function (result) {
     if (result) {
       console.log(result, "CACHE HIT!");
+      console.log("##vso[task.setvariable variable=cacheHit]true");
 
       if (options.downloadCacheOnHit) {
         downloadCache(hash, options.storageAccount, options.storageContainer, options.storageKey, options.outputPath).then(function () {
@@ -72,24 +75,29 @@ var hashAndCache = function (options) {
       }
     } else {
       console.log("CACHE MISS!");
+      console.log("##vso[task.setvariable variable=cacheHit]false");
       return onCacheMiss(hash, options);
     }
   });
 }
 
 var runExecCommand = function (options) {
-  if (options.execCommand) {
+  if (options.execCommand && !options.skipExec) {
     console.log("Running Command " + options.execCommand);
     execSync(options.execCommand, { cwd: options.execWorkingDirectory, stdio: 'inherit' });
   } else {
-    console.log("No command specified - skipping");
+    if (options.skipExec) {
+      console.log("Skipping exec command (options.skipExec = true)");
+    } else {
+      console.log("No command specified - skipping");
+    }
   }
 }
 
 var onCacheMiss = function (hash, options) {
   runExecCommand(options);
 
-  if (options.uploadCacheOnMiss) {
+  if (options.uploadCacheOnMiss && !options.skipExec) {
     var files = getFileList(options.outputPath, options.outputFiles, options.outputIgnore);
 
     if (!files || files.length == 0) {
@@ -123,6 +131,10 @@ var onCacheMiss = function (hash, options) {
         console.warn("Uploading of cache failed. This may happen when attempting to upload in parallel.")
         console.warn(err);
       });
+  } else {
+    if (options.skipExec) {
+      console.log("Skipping cache upload, no output to upload (options.skipExec = true)");
+    }
   }
 }
 
